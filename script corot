@@ -39,13 +39,23 @@ for i in range (0,2):
         milieu[i][j]=(s[i][j+1]+s[i][j])/2    #calcul du milieu
 #print(milieu)
 
-#%% Calcul des rayons en partant la plaque du bas 
-rayons_bas=[[[] for j in range(10)] for i in range(2)]
+#%% Calcul des distances entre les milieux
 
-for i in range (0,2):
+distance=[[[] for j in range(10)] for i in range(10)]  # liste vide qui contiendra la distance entre le milieu i d'une plaque et le milieu j de l'autre plaque 
+
+for i in range (0,10):
     for j in range (0,10):
-        if j>=i: #cas facile les rayons vont vers le recepteur - calcul ac pythagore 
-            rayons_bas[i][j]=h**2
+        d = np.sqrt((milieu[0][i]-milieu[1][j])**2 + h**2)
+        distance[i][j]= d # d[i][j] donne la distance entre le milieu i d'une plaque et le milieu j de l'autre plaque 
+        
+#print(distance)
+
+#%% Formules 
+
+def d2phi(Lum,ds,ds_prime,theta,theta_prime,d) :
+    d2phi = (Lum*ds*ds_prime*np.cos(theta)*np.cos(theta_prime))/(d**2)
+    #Formule du flux que Lemarquis nous a donné dans le cas 3D !! A DETERMINER EN 3D
+    return d2phi 
 
 
 
