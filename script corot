@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 13 15:23:22 2025
+
+@author: lucieremy
+"""
+
+########### Initialisation des variables #######################
+
+L= 10 #longueur des plaques
+dL= L/10 # intervalle de discrétisation 
+h= 3 # distance entre les plaques
+hr= 1 # hauteur entre la plaque du bas et le récepteur
+d= 2 # distance entre la fin de la plaque et le récépteur
+Lr= 1 # largeur du récépteur
+E0= 1 # Eclairement du soleil normalisé en W/m2 
+Lum= 0 # Luminance dans le cas lambertien A DETERMINER 
+M = 0# Emittance A DETERMINER 
+R= 0.01 # Reflectance de la peinture ie ce que la pleinture reflete >0
+
+# Formule: dans le cas lambertien et 3D : L=Pi*M 
+
+#%% Discrétisation des plaques
+
+s = [[[] for j in range(11)] for i in range(2)] # liste vide qui va contenir les segments discrétisés des plaques 
+
+for i in range (0,2):
+    for j in range (0,11):
+        s[i][j]=j*dL # plaque du bas car O
+        
+#print(s)
+
+#%% Calcul des milieux des segments
+milieu=[[[] for j in range(10)] for i in range(2)] # liste vide qui va contenir les milieux des plaques 
+
+for i in range (0,2):
+    for j in range (0,10):
+        milieu[i][j]=(s[i][j+1]+s[i][j])/2    #calcul du milieu
+#print(milieu)
+
+#%% Calcul des rayons en partant la plaque du bas 
+rayons_bas=[[[] for j in range(10)] for i in range(2)]
+
+for i in range (0,2):
+    for j in range (0,10):
+        if j>=i: #cas facile les rayons vont vers le recepteur - calcul ac pythagore 
+            rayons_bas[i][j]=h**2
+
+
+
