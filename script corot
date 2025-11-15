@@ -18,6 +18,7 @@ E0= 1 # Eclairement du soleil normalisé en W/m2
 Lum= 0 # Luminance dans le cas lambertien A DETERMINER 
 M = 0# Emittance A DETERMINER 
 R= 0.01 # Reflectance de la peinture ie ce que la pleinture reflete >0
+n_tours= 0 #Nombre de tours de reflexions a deteminer/modifier en fonction de nos besoins
 
 # Formule: dans le cas lambertien et 3D : L=Pi*M 
 
@@ -50,12 +51,36 @@ for i in range (0,10):
         
 #print(distance)
 
+#%% Calcul des angles entre les milieux
+
+angle=[[[] for j in range(10)] for i in range(10)]  # liste vide qui contiendra l'angle entre le milieu i d'une plaque et le milieu j de l'autre plaque
+
+for i in range (0,10):
+    for j in range (0,10):
+        angle[i][j]= arccos(dL/distance[i][j]) # donne l'angle entre le milieu i d'une plaque et le milieu j de l'autre plaque 
+#print(angle)
+
 #%% Formules 
 
 def d2phi(Lum,ds,ds_prime,theta,theta_prime,d) :
     d2phi = (Lum*ds*ds_prime*np.cos(theta)*np.cos(theta_prime))/(d**2)
-    #Formule du flux que Lemarquis nous a donné dans le cas 3D !! A DETERMINER EN 3D
+    #Formule du flux que Lemarquis nous a donné dans le cas 3D !! A DETERMINER EN 2D
     return d2phi 
 
+#%% Calcul de la quantité de lumière reçue
+
+E=[[[] for j in range(10)] for i in range(2)] # liste vide qui va contenir l'éclairement totale reçue par élément dl par tour
+
+def Eij(Lum,ds,ds_prime,theta,theta_prime,d): #contribution d'une fraction dl_prime à l'éclairement d'un élément dl
+    phi=d2phi(Lum,ds,ds_prime,theta,theta_prime,d)
+    return phi/ds #Basé sur la formule en 3D !!!!
+
+def Ei(Lum,ds,ds_prime,angle_i,angle_i_prime,distance_i): #eclairement d'un élément dl à chaque tour
+    """les variables angle_i et distance_i sont des liste qui contiennent respecivement les angles et les distances du milieu i avec tous les milieus de l'aurte côté"""
+    Ei=0
+    N=len(angle_i) #Permet d'avoir le bon nombre de boucles
+    for j in range(N):
+        Ei += Eij(Lum,ds,ds_prime,angle_i[j],angle_i_prime[j],distance_i[j]) #somme des contributions de chaque dl
+    return Ei
 
 
