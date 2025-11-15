@@ -69,8 +69,13 @@ def d2phi(Lum,ds,ds_prime,theta,theta_prime,d) :
 
 #%% Calcul de la quantité de lumière reçue
 
-E=[[[] for j in range(10)] for i in range(2)] # liste vide qui va contenir l'éclairement totale reçue par élément dl par tour
+#Initialisation
+E=[[[] for j in range(10)] for n in range(2)] # liste vide qui va contenir l'éclairement total reçu par élément dl par tour
 
+#Lumière de l'emetteur sur la plaque A REFLECHIR
+
+
+#Fonctions
 def Eij(Lum,ds,ds_prime,theta,theta_prime,d): #contribution d'une fraction dl_prime à l'éclairement d'un élément dl
     phi=d2phi(Lum,ds,ds_prime,theta,theta_prime,d)
     return phi/ds #Basé sur la formule en 3D !!!!
@@ -83,4 +88,12 @@ def Ei(Lum,ds,ds_prime,angle_i,angle_i_prime,distance_i): #eclairement d'un él�
         Ei += Eij(Lum,ds,ds_prime,angle_i[j],angle_i_prime[j],distance_i[j]) #somme des contributions de chaque dl
     return Ei
 
-
+#Récurrence
+"""La boucle qui va suivre permet de calculer l'éclairement à chaque tour : lorsque le numéro du tour est pair on calcule la puissance sur la plaque du haut, lorsqu'il est impair, sur la plaque du bas"""
+for n in range(n_tours):
+    if n%2 == 0:
+        for i in range(len(E[1]):
+            E[1][i]=Ei(Lum,dL,dL,angle[i],angle[i],distance[i])
+    else:
+      for i in range(len(E[0]):
+            E[0][i]=Ei(Lum,dL,dL,angle[i],angle[i],distance[i])
