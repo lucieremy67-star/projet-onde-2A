@@ -5,11 +5,14 @@ Created on Thu Nov 13 15:23:22 2025
 
 @author: lucieremy
 """
+########### Importation des librairies utiles ################## 
+
+import numpy as np
 
 ########### Initialisation des variables #######################
 
 L= 10 #longueur des plaques
-dL= L/10 # intervalle de discrétisation 
+dL= L/10 # intervalle de discrétisation ; dénominateur = nb de segments souhaité (ici 10)
 h= 3 # distance entre les plaques
 hr= 1 # hauteur entre la plaque du bas et le récepteur
 d= 2 # distance entre la fin de la plaque et le récépteur
@@ -24,25 +27,25 @@ n_tours= 0 #Nombre de tours de reflexions a deteminer/modifier en fonction de no
 
 #%% Discrétisation des plaques
 
-s = [[[] for j in range(11)] for i in range(2)] # liste vide qui va contenir les segments discrétisés des plaques 
+s = [[0 for j in range(11)] for i in range(2)] # liste qui va contenir les segments discrétisés des plaques 
 
 for i in range (0,2):
-    for j in range (0,11):
-        s[i][j]=j*dL # plaque du bas car O
+    for j in range (0,11): # 10 segments donc 11 démarcations
+        s[i][j]=j*dL # "coordonnées des démarcations entre chaque segment
         
 #print(s)
 
 #%% Calcul des milieux des segments
-milieu=[[[] for j in range(10)] for i in range(2)] # liste vide qui va contenir les milieux des plaques 
+milieu=[[0 for j in range(10)] for i in range(2)] # liste qui va contenir les "coordonnées" des milieux des segments 
 
 for i in range (0,2):
-    for j in range (0,10):
-        milieu[i][j]=(s[i][j+1]+s[i][j])/2    #calcul du milieu
+    for j in range (0,10): # 10 segments
+        milieu[i][j]=(s[i][j+1]+s[i][j])/2    #milieu du segment j de la plaque i
 #print(milieu)
 
-#%% Calcul des distances entre les milieux
+#%% Calcul des distances entre tous les milieux
 
-distance=[[[] for j in range(10)] for i in range(10)]  # liste vide qui contiendra la distance entre le milieu i d'une plaque et le milieu j de l'autre plaque 
+distance=[[0 for j in range(10)] for i in range(10)]  # liste qui contiendra les distances entre un milieu d'une plaque et tous les milieux de l'autre plaque 
 
 for i in range (0,10):
     for j in range (0,10):
@@ -53,7 +56,7 @@ for i in range (0,10):
 
 #%% Calcul des angles entre les milieux
 
-angle=[[[] for j in range(10)] for i in range(10)]  # liste vide qui contiendra l'angle entre le milieu i d'une plaque et le milieu j de l'autre plaque
+angle=[[0 for j in range(10)] for i in range(10)]  # liste qui contiendra les angles entre un milieu d'une plaque et tous les milieux de l'autre plaque
 
 for i in range (0,10):
     for j in range (0,10):
@@ -70,30 +73,30 @@ def d2phi(Lum,ds,ds_prime,theta,theta_prime,d) :
 #%% Calcul de la quantité de lumière reçue
 
 #Initialisation
-E=[[[] for j in range(10)] for n in range(2)] # liste vide qui va contenir l'éclairement total reçu par élément dl par tour
+E=[[0 for j in range(10)] for i in range(2)] # liste qui va contenir l'éclairement total reçu par segment par tour
 
 #Lumière de l'emetteur sur la plaque A REFLECHIR
 
 
 #Fonctions
-def Eij(Lum,ds,ds_prime,theta,theta_prime,d): #contribution d'une fraction dl_prime à l'éclairement d'un élément dl
+def Eij(Lum,ds,ds_prime,theta,theta_prime,d): # Energie que le segment j d'une plaque envoie sur le segment i de l'autre plaque
     phi=d2phi(Lum,ds,ds_prime,theta,theta_prime,d)
     return phi/ds #Basé sur la formule en 3D !!!!
 
-def Ei(Lum,ds,ds_prime,angle_i,angle_i_prime,distance_i): #eclairement d'un élément dl à chaque tour
-    """les variables angle_i et distance_i sont des liste qui contiennent respecivement les angles et les distances du milieu i avec tous les milieus de l'aurte côté"""
+def Ei(Lum,ds,ds_prime,angle_i,angle_i_prime,distance_i): # Eclairement reçu par le segment i après 1 tour
+    """les variables angle_i et distance_i sont des liste qui contiennent respecivement les angles et les distances du milieu i avec tous les milieus de l'autre côté"""
     Ei=0
-    N=len(angle_i) #Permet d'avoir le bon nombre de boucles
-    for j in range(N):
-        Ei += Eij(Lum,ds,ds_prime,angle_i[j],angle_i_prime[j],distance_i[j]) #somme des contributions de chaque dl
+    N=len(angle_i) # Nb d'itérations = nb de segments (pour avoir toutes les contributions)
+    for j in range(N): 
+        Ei += Eij(Lum,ds,ds_prime,angle_i[j],angle_i_prime[j],distance_i[j]) # Somme des contributions de chaque segment j de l'autre plaque
     return Ei
 
 #Récurrence
-"""La boucle qui va suivre permet de calculer l'éclairement à chaque tour : lorsque le numéro du tour est pair on calcule la puissance sur la plaque du haut, lorsqu'il est impair, sur la plaque du bas"""
+"""La boucle qui suit permet de calculer l'éclairement à chaque tour : lorsque le numéro du tour est pair on calcule l'éclairement sur la plaque du haut, lorsqu'il est impair, sur la plaque du bas"""
 for n in range(n_tours):
-    if n%2 == 0:
-        for i in range(len(E[1]):
-            E[1][i]=Ei(Lum,dL,dL,angle[i],angle[i],distance[i])
-    else:
-      for i in range(len(E[0]):
-            E[0][i]=Ei(Lum,dL,dL,angle[i],angle[i],distance[i])
+    if n%2 == 0: # Si le numéro du tour est pair
+        for i in range(len(E[1]): # len(E[1]) = nb de segments sur une plaque
+            E[1][i]=Ei(Lum,dL,dL,angle[i],angle[i],distance[i]) # Eclairement reçu par le segment i de la plaque 1 (plaque du bas) après n tours
+    else: # Si le numéro du tour est impair
+      for i in range(len(E[0]): # len(E[0]) = len(E[1]) = nb de segments sur une plaque
+            E[0][i]=Ei(Lum,dL,dL,angle[i],angle[i],distance[i]) # Eclairement reçu par le segment i de la plaque 0 (plaque du haut) après n tours
