@@ -49,24 +49,41 @@ distance=[[0 for j in range(10)] for i in range(10)]  # liste qui contiendra les
 
 for i in range (0,10):
     for j in range (0,10):
-        d = np.sqrt((milieu[0][i]-milieu[1][j])**2 + h**2)
-        distance[i][j]= d # d[i][j] donne la distance entre le milieu i d'une plaque et le milieu j de l'autre plaque 
+        distance[i][j] = np.sqrt((milieu[0][i]-milieu[1][j])**2 + h**2) # d[i][j] donne la distance entre le milieu i d'une plaque et le milieu j de l'autre plaque 
         
 #print(distance)
+
+#%%Calcul des distances entre les milieux et le récepteur
+
+distance_r=[[0 for j in range(10) for i in range(2)] # liste qui contiendra les distances entre les milieux[i][j] et le récepteur
+distance_r_horiz= [d+(j+0.5)*dL for j in range(10)] #liste qui contiendra les distances horizotale entre le milieux[j] d'une plaque et le projeté du récepteur le leg de l'axe de la plaque
+
+for i in range (2):
+    for j in range (10):
+        dj=distance_r_horiz[j]
+        distance_r[i][j]= np.sqrt((dj)**2 + (h/2)**2) #donne la distance entre le milieu j d'une plaque et le milieu du récepteur 
 
 #%% Calcul des angles entre les milieux
 
 angle=[[0 for j in range(10)] for i in range(10)]  # liste qui contiendra les angles entre un milieu d'une plaque et tous les milieux de l'autre plaque
+angle_r=[[0 for j in range(10)] for i in range(2)] # liste qui contiendra les angles entre les milieux[i][j] et le récepteur (côté plaque)
+angle_r_prime=[[0 for j in range(10)] for i in range(2)] # liste qui contiendra les angles entre les milieux[i][j] et le récepteur (côté récépteur)
+
 
 for i in range (0,10):
     for j in range (0,10):
         angle[i][j]= arccos(dL/distance[i][j]) # donne l'angle entre le milieu i d'une plaque et le milieu j de l'autre plaque 
 #print(angle)
 
+for i in range (2):
+    for j in range(10):
+        angle_r[i][j]= arccos(dL/distance_r[i][j]) # donne l'angle entre le milieu j d'une plaque et le milieu du récepteur côté plaque
+        angle_r_prime[i][j]= arccos(Lr/distance_r[i][j]) # donne l'angle entre le milieu j d'une plaque et le milieu du récepteur côté récpteur
+
 #%% Formules 
 
-def d2phi(Lum,ds,ds_prime,theta,theta_prime,d) :
-    d2phi = (Lum*ds*ds_prime*np.cos(theta)*np.cos(theta_prime))/(d**2)
+def d2phi(Lum,dl,dl_prime,theta,theta_prime,d) :
+    d2phi = (Lum*dl*dl_prime*np.cos(theta)*np.cos(theta_prime))/(d)
     #Formule du flux que Lemarquis nous a donné dans le cas 3D !! A DETERMINER EN 2D
     return d2phi 
 
@@ -75,21 +92,28 @@ def d2phi(Lum,ds,ds_prime,theta,theta_prime,d) :
 #Initialisation
 E=[[0 for j in range(10)] for i in range(2)] # liste qui va contenir l'éclairement total reçu par segment par tour
 
-#Lumière de l'emetteur sur la plaque A REFLECHIR
-
+#Conditions initiales
+milieu_initial=milieu[0][9] #Milieu sur lequel arrive la lumière incidente CHOIX ARBITRAIRE POUR L'INSTANT !!!
+plaque_initiale=0 #Plaque contenant le milieu incident
+indice_initial=9 #Indice de quel milieu est dans le tableau
 
 #Fonctions
-def Eij(Lum,ds,ds_prime,theta,theta_prime,d): # Energie que le segment j d'une plaque envoie sur le segment i de l'autre plaque
-    phi=d2phi(Lum,ds,ds_prime,theta,theta_prime,d)
-    return phi/ds #Basé sur la formule en 3D !!!!
+def Eij(Lum,dl,dl_prime,theta,theta_prime,d): # Energie que le segment j d'une plaque envoie sur le segment i de l'autre plaque
+    phi=d2phi(Lum,dl,dl_prime,theta,theta_prime,d)
+    return phi/dl_prime #Basé sur la formule en 3D !!!!
 
-def Ei(Lum,ds,ds_prime,angle_i,angle_i_prime,distance_i): # Eclairement reçu par le segment i après 1 tour
+def Ei(Lum,dl,dl_prime,angle_i,angle_i_prime,distance_i): # Eclairement reçu par le segment i après 1 tour
     """les variables angle_i et distance_i sont des liste qui contiennent respecivement les angles et les distances du milieu i avec tous les milieus de l'autre côté"""
     Ei=0
     N=len(angle_i) # Nb d'itérations = nb de segments (pour avoir toutes les contributions)
     for j in range(N): 
-        Ei += Eij(Lum,ds,ds_prime,angle_i[j],angle_i_prime[j],distance_i[j]) # Somme des contributions de chaque segment j de l'autre plaque
+        Ei += Eij(Lum,dl,dl_prime,angle_i[j],angle_i_prime[j],distance_i[j]) # Somme des contributions de chaque segment j de l'autre plaque
     return Ei
+
+#Récepteur
+Er_inital=Eij(Lum,dL,hr,angle_r[plaque_initiale][indice_initial],angle_r_prime[plaque_initiale][indice_initial],distance_r[plaque_initiale][indice_initial])  #Valeur arrivant sur le récepteur sans perturbations du téléscope
+Er_tot=Er_initial #éclairement total qui arrive sur le récépteur
+Er=[0 for n in range(n_tours)] #contribution de chaque tour sur l'éclairement
 
 #Récurrence
 """La boucle qui suit permet de calculer l'éclairement à chaque tour : lorsque le numéro du tour est pair on calcule l'éclairement sur la plaque du haut, lorsqu'il est impair, sur la plaque du bas"""
@@ -97,6 +121,8 @@ for n in range(n_tours):
     if n%2 == 0: # Si le numéro du tour est pair
         for i in range(len(E[1]): # len(E[1]) = nb de segments sur une plaque
             E[1][i]=Ei(Lum,dL,dL,angle[i],angle[i],distance[i]) # Eclairement reçu par le segment i de la plaque 1 (plaque du bas) après n tours
+        Er[n]=Ei(Lum,dL,hr,angle_r[1],angle_r_prime[1],distance_r[1]) # Eclairement reçu par le récepteur après n tours
     else: # Si le numéro du tour est impair
       for i in range(len(E[0]): # len(E[0]) = len(E[1]) = nb de segments sur une plaque
             E[0][i]=Ei(Lum,dL,dL,angle[i],angle[i],distance[i]) # Eclairement reçu par le segment i de la plaque 0 (plaque du haut) après n tours
+      Er[i]=Ei(Lum,dL,hr,angle_r[0],angle_r_prime[0],distance_r[0]) # Eclairement reçu par le récepteur après n tours
