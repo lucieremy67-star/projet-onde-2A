@@ -20,7 +20,7 @@ d= 2 # distance entre la fin de la plaque et le récépteur
 Lr= 1 # largeur du récépteur
 E0= 1 # Eclairement du soleil normalisé en W/m
 R= 0.01 # Reflectance de la peinture ie ce que la pleinture reflete >0
-Lum0= (E0*R)/np.pi # Luminance dans le cas lambertien A DETERMINER 
+Lum0= (E0*R)/2 # Luminance dans le cas lambertien A DETERMINER 
 M = 0# Emittance A DETERMINER 
 n_tours= 5 #Nombre de tours de reflexions a deteminer/modifier en fonction de nos besoins
 
@@ -121,13 +121,13 @@ for n in range(n_tours):
     if n%2 == 0: # Si le numéro du tour est pair
         for i in range(len(E[1])): # len(E[1]) = nb de segments sur une plaque
             E[1][i]=Ei(Lum[0],dL,dL,angle[i],angle[i],distance[i]) # Eclairement reçu par le segment i de la plaque 1 (plaque du bas) après n tours
-            Lum[1][i]=E[1][i]*R/(np.pi)
+            Lum[1][i]=E[1][i]*R/2
         Er[n]=Ei(Lum[0],dL,hr,angle_r[1],angle_r_prime[1],distance_r[1]) # Eclairement reçu par le récepteur après n tours
         #print(E)
     else: # Si le numéro du tour est impair
         for i in range(len(E[0])): # len(E[0]) = len(E[1]) = nb de segments sur une plaque
             E[0][i]=Ei(Lum[1],dL,dL,angle[i],angle[i],distance[i]) # Eclairement reçu par le segment i de la plaque 0 (plaque du haut) après n tours
-            Lum[0][i]=E[0][i]*R/(np.pi)
+            Lum[0][i]=E[0][i]*R/2
         Er[n]=Ei(Lum[1],dL,hr,angle_r[0],angle_r_prime[0],distance_r[0]) # Eclairement reçu par le récepteur après n tours
         #print(E)
 
