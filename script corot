@@ -134,10 +134,16 @@ for n in range(n_tours):
 #%%Exploitation des résultats
 
 #Représentation graphique des proportions de chaque contribution parasites (histogramme ?)
-X=[n for n in range(n_tours+1)]
-Y=[Er_initial]+Er
+X=[n+1 for n in range(n_tours)]
+Y=Er
 
 plt.plot(X,Y)
+plt.title("Eclairement reçu par le recepteur en fonction du numéro de la réflexion")
+plt.xlabel("Numéro de la réflexion")
+plt.ylabel("Er/E0")
+plt.yscale('log')
+plt.xticks(X)
+plt.grid()
 plt.show()
 
 
